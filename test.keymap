@@ -1,0 +1,85 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include "../../../zephyr/lib/libc/minimal/include/stdint.h"
+#include <device.h>
+#include <drivers/display.h>
+#include <zmk/event_manager.h>
+#include <zmk/events/layer_state_changed.h>
+
+static const struct device *display_dev;
+
+void update_display(const char *message) {
+    if (display_dev == NULL) {
+        printk("Display device not found\n");
+        return;
+    }
+
+    display_set_pixel_format(display_dev, PIXEL_FORMAT_MONO10);
+    display_blanking_off(display_dev);
+
+    struct display_buffer_descriptor buf_desc = {
+        .buf_size = 128 * 64 / 8,
+        .width = 128,
+        .height = 64,
+        .pitch = 128,
+    };
+
+    uint8_t buf[128 * 64 / 8] = {0};
+
+    // Here you would update the buffer with your message or pattern
+    // Example: Clear the buffer
+    memset(buf, 0, sizeof(buf));
+
+    // Example: Fill the buffer with 0xFF to turn all pixels on
+    // memset(buf, 0xFF, sizeof(buf));
+
+    // Example: Display a message (this is simplified and assumes a specific font and layout)
+    // You need to create the actual byte pattern for your message
+
+    display_write(display_dev, 0, 0, &buf_desc, buf);
+}
+
+static int layer_state_changed_listener(const zmk_event_t *eh) {
+    struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
+    char msg[64];
+    snprintf(msg, sizeof(msg), "Layer: %d", ev->layer);
+    update_display(msg);
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(display_listener, layer_state_changed_listener);
+ZMK_SUBSCRIPTION(display_listener, zmk_layer_state_changed);
+
+void main(void) {
+    display_dev = device_get_binding("SSD1306");
+
+    if (display_dev == NULL) {
+        printk("Display device not found\n");
+        return;
+    }
+
+    // Initialize the display with a welcome message
+    update_display("Welcome");
+}
+
+/ {
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+// -------------------------------------------------------------         -------------------------------------------------------------
+// |   ESC   |    Q    |    W    |    E    |    R    |    T    |         |    Y    |    U    |    I    |    O    |    P    |    <-   |
+// |   TAB   |    A    |    S    |    D    |    F    |    G    |         |    H    |    J    |    K    |    L    |    ;    |  ENTER  |
+// |  SHIFT  |    Z    |    X    |    C    |    V    |    B    |         |    N    |    M    |    <    |    >    |    ?    |    FN   |
+// -------------------------------------------------------------         -------------------------------------------------------------
+
+            bindings = <
+
+    &kp ESC     &kp Q     &kp W     &kp E     &kp R     &kp T               &kp Y     &kp U     &kp I     &kp O    &kp P     &kp BKSP
+    &kp TAB     &kp A     &kp S     &kp D     &kp F     &kp G               &kp H     &kp J     &kp K     &kp L    &kp SEMI  &kp RET
+    &kp LSHIFT  &kp Z     &kp X     &kp C     &kp V     &kp B               &kp N     &kp M     &kp LT    &kp GT   &kp QMARK &kp SPC
+
+            >;
+        };
+    };
+};

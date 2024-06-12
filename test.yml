@@ -1,0 +1,8 @@
+file_format: "1"
+id: test
+name: KeyboardTest
+type: shield
+url: https://github.com/Mugzy1
+requires: [pro_micro]
+features:
+  - keys

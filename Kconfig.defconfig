@@ -1,0 +1,10 @@
+if SHIELD_TEST
+
+config ZMK_KEYBOARD_NAME
+    default "KeyboardTest"
+
+endif
+
+CONFIG_DISPLAY=y
+CONFIG_SSD1306=y
+CONFIG_I2C=y
